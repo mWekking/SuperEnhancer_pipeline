@@ -52,7 +52,7 @@ The first step makes use of the mac peak calling algorithm. This is possible to 
 
 **-i**
 
-A list of files peaks are called for. on every row should be the relative path from the super-enhancer pipeline to the file. If peaks should be called with a control file, the row should contain the relative path to the sample and the relative path to the control file seperated by comma.
+A list of files peaks are called for. on every row should be the relative path from the pipeline to the file. If peaks should be called with a control file, the row should contain the relative path to the sample and the relative path to the control file seperated by comma.
 
 **optional flags**
 
@@ -61,6 +61,30 @@ A list of files peaks are called for. on every row should be the relative path f
 The name of the output directory. Default = Peakcalling_Output
 
 **Example input**: ```python superEnhancerPipeline3.py callpeaks peakCall_filelist.txt ```
+
+## filterPeaks ##
+Convert the narrowPeak file from the peakcalling into a gff file (needed for ROSE). optional: stretch peaks that are to small, filter out peaks that are to close to a TSS and remove peaks that are on mitochondrial DNA.
+
+**required positional flags**
+
+**-i**
+
+A list of files that are converted. Every row should contain the relative path from the pipeline to the narrowPeak file
+
+**-r**
+
+The relative path to the refSEQ txt file that contains all the regulatory elements
+
+**optional flags**
+
+**-o**
+The name of the output directory. Default = filteredPeaks
+
+
+
+
+
+
 
 # Optional steps
 
