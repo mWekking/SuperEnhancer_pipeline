@@ -89,14 +89,29 @@ If peaks are smaller than the given size, they will be stretched. default = 2000
 
 If peaks are closer than the given distance to a TSS, they will be filtered out. default = 5000
 
-
 **-mt/-removeMT**
 
 Remove all peaks that are from the mitochondria (True/False). default = True
 
 **Example input**: ```python superEnhancerPipeline.py filterPeaks filterPeaks_filelist.txt ncbiREFSEQ.txt -o SEpeaks_filtered -p 5000 -tr 10000 -mt False```
 
+## ROSE ##
 
+Find super enhancers by calling the ROSE_main() program
+
+**required positional flags**
+
+**-i**
+
+A list of files that are used for ROSE. Each line should contain the relative path to each gff file and the bam file it is associated with, comma seperated.
+
+**optional flags**
+
+**-g/-genomeBuild**
+
+Which genome build is used to map against (MM8, MM9, MM10, HG18, HG19). default = HG19
+
+**Example input**: ```python superEnhancerPipeline.py ROSE ROSE_filelist.txt -g HG18
 
 # Optional steps
 
