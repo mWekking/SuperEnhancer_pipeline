@@ -26,7 +26,7 @@ and the most recent version of R
 ```
 superEnhancer_Pipeline_split.py [-h] {callpeaks,filterChromosomes,filterPeaks,sortGFF,ROSE,peakConsensus,compareSamples,DESeq2,filterResults,findGenes}
 ```
-
+The pipeline has 8 command to find super-enhancers.
 | Sub command | Discription |
 | --- | --- |
 | callPeaks | Calling peaks by making use of the macs peakcaller |
