@@ -58,7 +58,7 @@ A list of files peaks are called for. on every row should be the relative path f
 
 The name of the output directory. Default = Peakcalling_Output
 
-**example input**: python superEnhancerPipeline3.py callpeaks peakCall_filelist.txt 
+**Example input**: ```python superEnhancerPipeline3.py callpeaks peakCall_filelist.txt ```
 
 # Optional steps
 
