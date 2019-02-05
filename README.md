@@ -49,13 +49,11 @@ The pipeline has 8 command to find super-enhancers.
 The first step makes use of the mac peak calling algorithm. This is possible to do with or without input/control files. All other settings are the macs2 default setting.
 
 **required positional flags**
-
 **-i**
 
 A list of files peaks are called for. on every row should be the relative path from the pipeline to the file. If peaks should be called with a control file, the row should contain the relative path to the sample and the relative path to the control file seperated by comma.
 
 **optional flags**
-
 **-o**
 
 The name of the output directory. Default = Peakcalling_Output
@@ -66,7 +64,6 @@ The name of the output directory. Default = Peakcalling_Output
 Convert the narrowPeak file from the peakcalling into a gff file (needed for ROSE). optional: stretch peaks that are to small, filter out peaks that are to close to a TSS and remove peaks that are on mitochondrial DNA.
 
 **required positional flags**
-
 **-i**
 
 A list of files that are converted. Every row should contain the relative path from the pipeline to the narrowPeak file
@@ -76,7 +73,6 @@ A list of files that are converted. Every row should contain the relative path f
 The relative path to the refSEQ txt file that contains all the regulatory elements
 
 **optional flags**
-
 **-o/-output**
 
 The name of the output directory. Default = filteredPeaks
@@ -100,13 +96,11 @@ Remove all peaks that are from the mitochondria (True/False). default = True
 Find super enhancers by calling the ROSE_main() program
 
 **required positional flags**
-
 **-i**
 
 A list of files that are used for ROSE. Each line should contain the relative path to each gff file and the bam file it is associated with, comma seperated.
 
 **optional flags**
-
 **-g/-genomeBuild**
 
 Which genome build is used to map against (MM8, MM9, MM10, HG18, HG19). default = HG19
