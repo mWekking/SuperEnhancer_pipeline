@@ -44,9 +44,17 @@ The pipeline has 8 command to find super-enhancers.
 ## callPeaks ##
 The first step makes use of the mac peak calling algorithm. This is possible to do with or without input/control files. All other settings are the macs2 default setting.
 
-**required flags**
+**required positional flags**
 
 **-i**
 
 A list of files peaks are called for. on every row should be the relative path from the super-enhancer pipeline to the file. If peaks should be called with a control file, the row should contain the relative path to the sample and the relative path to the control file seperated by comma.
+
+**optional flags**
+
+**-o**
+
+The name of the output directory. Default = Peakcalling_Output
+
+**example input**: python superEnhancerPipeline3.py callpeaks peakCall_filelist.txt 
 
