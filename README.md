@@ -113,5 +113,41 @@ Which genome build is used to map against (MM8, MM9, MM10, HG18, HG19). default 
 
 **Example input**: ```python superEnhancerPipeline.py ROSE ROSE_filelist.txt -g HG18```
 
+## peakConsensus ##
+
+Creating one consensus file containing only regions that are found in a certain amount of the samples
+
+**required positional flags**
+
+-i
+
+A list of the relative paths to every _SuperEnhancers.table.txt file created by ROSE.
+
+-n
+
+The name of the bed file created (_consensus will be added. I.E. NAME_consensus.bed
+
+-t
+
+how many files should contain a certain peak to be considered true
+
+**Example input**: ``` python superEnhancerPipeline.py peakConsensus peakConsensus_filelist.txt Analysis_1 3```
+
+## compareSamples ##
+
+Find per super-enhancer how many reads are from every seperate sample
+
+**required positional flags**
+
+-i
+
+A list of files. Every row should contain the original bam file, the consensus file and in which group the sample belongs comma seperated (I.E. PBT1.bam,PBT_SFT_consensus.bed,A_PBT)
+
+-c
+
+The relative location of the consensus file
+
+**Example input**: ```python superEnhancerPipeline.py compareSamples compareSamples.txt consensusFiles/Analysis_1_consensus.bed```
+
 # Optional steps
 
