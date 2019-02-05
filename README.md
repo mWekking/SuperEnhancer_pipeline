@@ -20,3 +20,9 @@ Linux related:
 ``` 
 
 and the most recent version of R
+
+# Usage
+
+```
+superEnhancer_Pipeline_split.py [-h] {callpeaks,filterChromosomes,filterPeaks,sortGFF,ROSE,peakConsensus,compareSamples,DESeq2,filterResults,findGenes}
+```
