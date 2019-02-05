@@ -33,3 +33,9 @@ superEnhancer_Pipeline_split.py [-h] {callpeaks,filterChromosomes,filterPeaks,so
 | filterChromosomes | **Optional**: filter certain chromosomes out I.E chromosome X and Y |
 | filterPeaks | stretch peaks, remove peaks to close to TSS, remove MT dna and convert to gff |
 | sortGFF | **optional**: Sort the created gff file on chromosome and starting coordinates |
+| ROSE | Finding the super-enhancer regions by making use of ROSE |
+| peakConnsensus | Creating one consensus file containing only regions that are found in a certain amount of the samples |
+| compareSamples | Find for each super-enhancer how many reads are found in each sample |
+| DESeq2 | Use DESeq2 to find the log2foldchange per group | 
+| filterResults | **optional**: Filter out results that aren't significant or have a to low difference in either group |
+| findGenes | Finding which genes are associated with the significant regions | 
