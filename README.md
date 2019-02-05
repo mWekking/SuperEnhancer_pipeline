@@ -60,7 +60,7 @@ A list of files peaks are called for. on every row should be the relative path f
 
 The name of the output directory. Default = Peakcalling_Output
 
-**Example input**: ```python superEnhancerPipeline3.py callpeaks peakCall_filelist.txt ```
+**Example input**: ```python superEnhancerPipeline.py callpeaks peakCall_filelist.txt ```
 
 ## filterPeaks ##
 Convert the narrowPeak file from the peakcalling into a gff file (needed for ROSE). optional: stretch peaks that are to small, filter out peaks that are to close to a TSS and remove peaks that are on mitochondrial DNA.
@@ -77,12 +77,24 @@ The relative path to the refSEQ txt file that contains all the regulatory elemen
 
 **optional flags**
 
-**-o**
+**-o/-output**
+
 The name of the output directory. Default = filteredPeaks
 
+**-p/-minPeakSize**
+
+If peaks are smaller than the given size, they will be stretched. default = 2000 bp
+
+**-tr/-treshold**
+
+If peaks are closer than the given distance to a TSS, they will be filtered out. default = 5000
 
 
+**-mt/-removeMT**
 
+Remove all peaks that are from the mitochondria (True/False). default = True
+
+**Example input**: ```python superEnhancerPipeline.py filterPeaks filterPeaks_filelist.txt ncbiREFSEQ.txt -o SEpeaks_filtered -p 5000 -tr 10000 -mt False
 
 
 
