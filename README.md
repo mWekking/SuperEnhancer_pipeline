@@ -111,7 +111,7 @@ A list of files that are used for ROSE. Each line should contain the relative pa
 
 Which genome build is used to map against (MM8, MM9, MM10, HG18, HG19). default = HG19
 
-**Example input**: ```python superEnhancerPipeline.py ROSE ROSE_filelist.txt -g HG18
+**Example input**: ```python superEnhancerPipeline.py ROSE ROSE_filelist.txt -g HG18```
 
 # Optional steps
 
