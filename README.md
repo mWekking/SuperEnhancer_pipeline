@@ -26,3 +26,10 @@ and the most recent version of R
 ```
 superEnhancer_Pipeline_split.py [-h] {callpeaks,filterChromosomes,filterPeaks,sortGFF,ROSE,peakConsensus,compareSamples,DESeq2,filterResults,findGenes}
 ```
+
+| Sub command | Discription |
+| --- | --- |
+| callPeaks | Calling peaks by making use of the macs peakcaller |
+| filterChromosomes | **Optional**: filter certain chromosomes out I.E chromosome X and Y |
+| filterPeaks | stretch peaks, remove peaks to close to TSS, remove MT dna and convert to gff |
+| sortGFF | **optional**: Sort the created gff file on chromosome and starting coordinates |
