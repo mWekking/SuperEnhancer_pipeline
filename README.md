@@ -94,7 +94,7 @@ If peaks are closer than the given distance to a TSS, they will be filtered out.
 
 Remove all peaks that are from the mitochondria (True/False). default = True
 
-**Example input**: ```python superEnhancerPipeline.py filterPeaks filterPeaks_filelist.txt ncbiREFSEQ.txt -o SEpeaks_filtered -p 5000 -tr 10000 -mt False
+**Example input**: ```python superEnhancerPipeline.py filterPeaks filterPeaks_filelist.txt ncbiREFSEQ.txt -o SEpeaks_filtered -p 5000 -tr 10000 -mt False```
 
 
 
