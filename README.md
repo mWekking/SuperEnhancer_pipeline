@@ -60,7 +60,7 @@ A list of files peaks are called for. on every row should be the relative path f
 
 The name of the output directory. Default = Peakcalling_Output
 
-**Example input**: ```python superEnhancerPipeline.py callpeaks peakCall_filelist.txt ```
+**Example input**: ```python superEnhancerPipeline.py callpeaks peakCall_filelist.txt -o Macs_peakcalling ```
 
 ## filterPeaks ##
 Convert the narrowPeak file from the peakcalling into a gff file (needed for ROSE). optional: stretch peaks that are to small, filter out peaks that are to close to a TSS and remove peaks that are on mitochondrial DNA.
@@ -200,8 +200,39 @@ The maximal distrance between a TSS and the super-enhancer to be associated with
 
 A translation file in TSV format with the columns: RefSeq mRNA ID and Gene name, tab delimited. 
 
-**Example Input** ```python superEnhancerPipeline.py findGenes significant_adjFoldChange_results.txt ncbiREFSEQ.txt -t 100000 -n geneTranslateFile.txt```
+**Example input** ```python superEnhancerPipeline.py findGenes significant_adjFoldChange_results.txt ncbiREFSEQ.txt -t 100000 -n geneTranslateFile.txt```
 
 
 # Optional steps
 
+## filterChromosomes
+
+Filter certain chromosomes out of your narrowPeak file
+
+**Required positional flags**
+
+-l
+
+The relative path to the directory with narrowPeak files
+
+-c
+
+The chromosomes you want to keep comma seperated
+
+**Example input** ```python superEnhancerPipeline.py filterChromosomes Macs_peakcalling```
+
+## sortGFF
+
+Sort the .gff file on chromosome and location
+
+**Required positional flags**
+
+-i
+
+A file list with on each row the relative path to the GFF files
+
+-o
+
+The name of output directory
+
+**Example input** ```python superEnhancerPipeline.py sortGFF sort_filelist.txt sorted_GFFs```
