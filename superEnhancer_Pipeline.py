@@ -39,7 +39,7 @@ def peakcalling(fileDict, outputDir):
                                                 , "-n", sample[:-4] \
                                                 , "--outdir", outputDir \
                                                 , "-f", sample[-3:].upper() \
-                                                , "--verbose", "2"])
+                                                , "--verbose", "1"])
             print("---  Finished calling peaks for {} ---".format(files))
         else:
             print("---  Calling peaks for {}    ---\n".format(files))
@@ -47,7 +47,7 @@ def peakcalling(fileDict, outputDir):
                                                 , "-n", sample[:-4] \
                                                 , "--outdir", outputDir \
                                                 , "-f", sample[-3:].upper() \
-                                                , "--verbose", "2"])
+                                                , "--verbose", "1"])
             print("---  Finished calling peaks for {} ---".format(sample))
     return outputDir
 
@@ -174,7 +174,7 @@ def filterPeakDistance(peakDict, refSeqDict, treshold, removeMTdna):
             os.system("clear")
             perc = (float(counter) / float(len(peakDict))) * 100
             print ("%.1f" % perc) + "%\n" , str(counter) + "/" + str(len(peakDict)), "Peaks tested", "\nFar enough peaks", len(endPeaks)
-            print("\n--- %s seconds ---" % (time.time() - start_time))
+            print("\nCurrently running: {:.0f} seconds".format(time.time() - start_time))
 
         #here the comparrison starts
         #the Enddistance is the closest distance from each peak to a gene in the refrence genome
@@ -348,18 +348,18 @@ def compareBamBed(bamBedFilesList):
         bedFile = bamBedFilesList[bamFile][0]
         relativePath = os.path.dirname(os.path.realpath(__file__)) + "/"
         with open(relativePath + fileName, "wb") as f1:
-            print "Working on comparing {} with {} ...".format(bamFile, bedFile)
+            print ("Working on comparing {} with {} ...".format(bamFile, bedFile))
             subprocess.call(["samtools", "view", relativePath + bamFile, "-L", relativePath + bedFile, "-b"], stdout= f1)
-            print "created {}".format(fileName)
+            print ("created {}".format(fileName))
         with open(relativePath + fileName[:-4] + ".bed", "wb") as f2:
             createdBamfile = [relativePath + fileName, bamBedFilesList[bamFile][1]]
             subprocess.call(["bedtools", "bamtobed", "-i", createdBamfile[0]], stdout = f2)
-            print "converted it to {}".format(fileName[:-4] + ".bed")
+            print ("converted it to {}".format(fileName[:-4] + ".bed"))
             createdBedFiles.append([relativePath + fileName[:-4] + ".bed", createdBamfile[1]])
-        print "Done\n"
+        print ("Done\n")
     return createdBedFiles
         
-def superEnhancerReadOverlap(consensusFile, readsFiles, pValueTreshold, foldChangeTreshold):
+def superEnhancerReadOverlap(consensusFile, readsFiles):
     relativePath = os.path.dirname(os.path.realpath(__file__)) + "/"
     consensusDict = {}
     with open(relativePath + consensusFile, "r") as f:
@@ -400,6 +400,7 @@ def superEnhancerReadOverlap(consensusFile, readsFiles, pValueTreshold, foldChan
     writeCountLines = []
     counter = 1
     for chromosomes in consensusDict:
+        print ("Counting reads per sample on chromosome {}\n".format(chromosomes))
         for superEnhancers in consensusDict[chromosomes]:
             superEnhancerStart = superEnhancers[0]
             superEnhancerStop = superEnhancers[1]
@@ -425,9 +426,10 @@ def superEnhancerReadOverlap(consensusFile, readsFiles, pValueTreshold, foldChan
                 scores.append(score)
 
             writeLines.append("{}\t{}\t{}\t{}".format(chromosomes, superEnhancerStart, superEnhancerStop, "\t".join(map(str, scores))))
-            writeCountLines.append("Chr{}_Peak{}\t{}".format(chromosomes, counter, "\t".join(map(str, scores))))
+            writeCountLines.append("Chr{}_superEnhancer{}\t{}".format(chromosomes, counter, "\t".join(map(str, scores))))
             counter += 1
     
+    print("Done!\nWriting files: reads_per_SuperEnhancers.bed, superEnhancer_names.txt, superEnhancer_counts.txt")
     with open(relativePath + "reads_per_SuperEnhancers.bed", "wb") as f:
         f.write("\t".join(header) + '\n')
         for lines in writeLines:
@@ -441,7 +443,11 @@ def superEnhancerReadOverlap(consensusFile, readsFiles, pValueTreshold, foldChan
         f.write("\t".join(countHeader) + "\n")
         for lines in writeCountLines:
             f.write(lines + "\n")
-                
+
+#----------------------------------------- DESeq2
+def DESeq2():          
+    relativePath = os.path.dirname(os.path.realpath(__file__)) + "/"      
+    
     subprocess.call(["Rscript", "--save", "DESeq2_analysis.R"])
     
     with open(relativePath + "results.txt", "r") as f1, open(relativePath + "reads_per_SuperEnhancers.bed", "r") as f2:
@@ -449,35 +455,44 @@ def superEnhancerReadOverlap(consensusFile, readsFiles, pValueTreshold, foldChan
             #remove the Headers
             f1.readline()
             f2.readline()
+            header = ["name", "start", "stop", "basemean", "log2FoldChange", "lfcSE", "stat", "pvalue", "padj"]
             wf.write( "\t".join(header) + "\n")
             for lines1, lines2 in zip(f1, f2):
-                writeLine       = lines1.rstrip().split()
+                splitLine       = lines1.rstrip().split()
                 coordinatesLine = lines2.rstrip().split()
                 start           = coordinatesLine[1]
                 stop            = coordinatesLine[2]
-                writeLine.extend([start, stop])
+                writeLine = [splitLine[0]]
+                writeLine.extend([start,stop])
+                writeLine.extend(splitLine[1:])
                 wf.write( "\t".join(writeLine) + "\n")
 
+#----------------------------------------------- filter results
+def filterResults(pValueTreshold, foldChangeTreshold):
+    relativePath = os.path.dirname(os.path.realpath(__file__)) + "/"
+    
     if pValueTreshold[0] == "a":
         treshold     = float(pValueTreshold[1])
-        filterString = "$7<{}".format(treshold)
-        with open("Significant_results.txt", "wb") as f:
+        filterString = "$9<{}".format(treshold)
+        with open("sSignificant_results.txt", "wb") as f:
             subprocess.call(["awk", filterString, relativePath + "results_withCoords.txt"], stdout= f)
     elif pValueTreshold[0] == "s":
         treshold     = float(pValueTreshold[1])
-        filterString = "$6<{}".format(treshold)
-        with open("Significant_results.txt", "wb") as f:
+        filterString = "$8<{}".format(treshold)
+        with open("significant_results.txt", "wb") as f:
             subprocess.call(["awk", filterString, relativePath + "results_withCoords.txt"], stdout= f)
 
     if foldChangeTreshold[0] == True:
-        if pValueTreshold[0] == True:
-            fileName = "Significant_results.txt"
+        if pValueTreshold[0] == "a" or pValueTreshold[0] == "s":
+            fileName = "significant_results.txt"
+            writeTitle = "significant_"
         else:
             fileName = "results_withCoords.txt"
+            writeTitle = ""
             
         treshold     = float(foldChangeTreshold[1])
-        filterString = "$3>{}||$3<{}".format(treshold,-treshold)
-        with open(fileName[:-4] + "_adjFoldChange.txt", "wb") as f:
+        filterString = "$5>{}||$5<{}".format(treshold,-treshold)
+        with open(writeTitle + "adjFoldChange_results.txt", "wb") as f:
             subprocess.call(["awk", filterString, relativePath + fileName], stdout= f) 
 
 #----------------------------------------------------------find genes
@@ -485,26 +500,47 @@ def superEnhancerReadOverlap(consensusFile, readsFiles, pValueTreshold, foldChan
 def readConsensus(consensusFile):
     endDict = {}
     with open(consensusFile, "r") as f:
+        f.readline()
         for lines in f:
             tempDict = {}
-            name, baseMean, logChange, lfcSE, stat, pvalue, padj, start, stop = lines.rstrip().split()
-            tempDict = {"name" : name, "baseMean" : baseMean, "logChange" : logChange, \
-                        "lfcSE": lfcSE, "stat" : stat, "pvalue" : pvalue, "padj" : padj, \
-                        "start": start, "stop" : stop}
+            name, start, stop, baseMean, logChange, lfcSE, stat, pvalue, padj = lines.rstrip().split()
+            tempDict = {"name" : name, "start": start, "stop" : stop, "baseMean" : baseMean, "logChange" : logChange, \
+                        "lfcSE": lfcSE, "stat" : stat, "pvalue" : pvalue, "padj" : padj \
+                        }
             chromosome = name[3:5].strip("_")
             if chromosome not in endDict:
                 endDict[chromosome] = []
             endDict[chromosome].append(tempDict)
     return endDict
 
-def geneFinder(consensusDict, geneDict, geneDistance = 50000):
+def readGeneTranslate(translateFile):
+    endDict = {}
+    relativePath = os.path.dirname(os.path.realpath(__file__)) + "/"
+    with open(relativePath + translateFile, "r") as f:
+        for lines in f:
+            splitLine = lines.rstrip().split()
+            if len(splitLine) == 2:
+                refseqID    = splitLine[0]
+                geneName    = splitLine[1]
+                endDict[refseqID] = geneName 
+            #else:
+            #    print("This translate file has the right format it should be: geneID\tgeneName")
+            #    sys.exit()
+        return endDict
+ 
+def geneFinder(consensusDict, geneDict, translateDict, endFile, geneDistance = 50000):
     #find genes that are on the same chromosome and have their TSS withing the geneDistance of a super-enhancer
-    with open("Significant_results_adjFoldChange_withGenes.txt", "wb") as f, open("Gene_centered_file.txt", "wb") as f2:
-        f.write("ID\tchrom\tstart\tstop\tbaseMean\tlog2FoldChange\tlfcSE\tstat\tpvalue\tpadj\tgenes\n")
-        f2.write("gene\tdistance\tchrom\tstart\tstop\tID\tbaseMean\tlog2FoldChange\tlfcSE\tstat\tpvalue\tpadj\n")
+    with open(endFile, "wb") as f, open("Gene_centered_file.txt", "wb") as f2:
+        if translateDict == None:
+            f.write("ID\tchrom\tstart\tstop\tbaseMean\tlog2FoldChange\tlfcSE\tstat\tpvalue\tpadj\tgenes\n")
+            f2.write("gene\tgeneName\tdistance\tchrom\tstart\tstop\tID\tbaseMean\tlog2FoldChange\tlfcSE\tstat\tpvalue\tpadj\n")
+        else:
+            f.write("ID\tchrom\tstart\tstop\tbaseMean\tlog2FoldChange\tlfcSE\tstat\tpvalue\tpadj\tgenes\tgeneName\n")
+            f2.write("gene\tgeneName\tdistance\tchrom\tstart\tstop\tID\tbaseMean\tlog2FoldChange\tlfcSE\tstat\tpvalue\tpadj\n")
         for chromosomes in consensusDict:
             for peaks in consensusDict[chromosomes]:
                 geneList   = []
+                geneNames  = []
                 endGeneDict   = {}
 
                 peakStart   = int(peaks["start"])
@@ -525,22 +561,34 @@ def geneFinder(consensusDict, geneDict, geneDistance = 50000):
                         elif peakMiddle < TSS:
                             distance = TSS - peakMiddle
                         endGeneDict[genes] = distance
+                
+                #write gene centered file                    
+                if translateDict != None:        
+                    for gene, distance in sorted(endGeneDict.iteritems(), key=lambda (k,v): (v,k)):
+                        geneList.append(gene) 
+                        try:
+                            geneName = translateDict[gene.split(".")[0]]
+                            geneNames.append(geneName)
+                            f2.write("{}\t{}\t{}\t{}\t{}\t{}\t{}\t{}\t{}\t{}\t{}\t{}\t{}\n".format(gene, geneName ,distance, chromosomes, peaks["start"], peaks["stop"], peaks["name"], peaks["baseMean"], peaks["logChange"], peaks["lfcSE"], peaks["stat"], peaks["pvalue"], peaks["padj"]))
+                        except KeyError:
+                            f2.write("{}\t{}\t{}\t{}\t{}\t{}\t{}\t{}\t{}\t{}\t{}\t{}\n".format(gene,distance, chromosomes, peaks["start"], peaks["stop"], peaks["name"], peaks["baseMean"], peaks["logChange"], peaks["lfcSE"], peaks["stat"], peaks["pvalue"], peaks["padj"]))         
+                else:
+                    for gene, distance in sorted(endGeneDict.iteritems(), key=lambda (k,v): (v,k)):
+                        geneList.append(gene) 
+                        f2.write("{}\t{}\t{}\t{}\t{}\t{}\t{}\t{}\t{}\t{}\t{}\t{}\n".format(gene,distance, chromosomes, peaks["start"], peaks["stop"], peaks["name"], peaks["baseMean"], peaks["logChange"], peaks["lfcSE"], peaks["stat"], peaks["pvalue"], peaks["padj"]))         
                         
-                for gene, distance in sorted(endGeneDict.iteritems(), key=lambda (k,v): (v,k)):
-                    geneList.append(gene) 
-                    f2.write("{}\t{}\t{}\t{}\t{}\t{}\t{}\t{}\t{}\t{}\t{}\t{}\n".format(gene, distance, chromosomes, peaks["start"], peaks["stop"], peaks["name"], peaks["baseMean"], peaks["logChange"], peaks["lfcSE"], peaks["stat"], peaks["pvalue"], peaks["padj"]))
-
-                f.write("{}\t{}\t{}\t{}\t{}\t{}\t{}\t{}\t{}\t{}\t{}\n".format(peaks["name"], chromosomes, peaks["start"], peaks["stop"], peaks["baseMean"], peaks["logChange"], peaks["lfcSE"], peaks["stat"], peaks["pvalue"], peaks["padj"], ",".join(geneList)))
+                #write super-enhancer centered file
+                f.write("{}\t{}\t{}\t{}\t{}\t{}\t{}\t{}\t{}\t{}\t{}\t{}\n".format(peaks["name"], chromosomes, peaks["start"], peaks["stop"], peaks["baseMean"], peaks["logChange"], peaks["lfcSE"], peaks["stat"], peaks["pvalue"], peaks["padj"], ",".join(geneList), ",".join(geneNames)))
 
 #--------------------------------------------------------- input ------------------------------
 #Here the input from the ubuntu console gets parsed
 parser = argparse.ArgumentParser(description= "This is a easy to use pipeline, to call peaks, find significant super-enhancers and the genes they are associated with.")
 
 subparsers = parser.add_subparsers()
-parser_peakCalling = subparsers.add_parser("callpeaks", help= "Use Macs2 to call peaks on bamfiles")
+parser_peakCalling = subparsers.add_parser("callPeaks", help= "Use Macs2 to call peaks on bamfiles")
 #required flags
 parser_peakCalling.add_argument("i" , help= ".txt filelist file. each row must be a sample and a control file, seperated by a comma")
-parser_peakCalling.add_argument("-o", help= "The name of the output folder, This will be located in the folder where this .py file is located" )
+parser_peakCalling.add_argument("-o", help= "The name of the output folder, This will be located in the folder where this .py file is located. default = /Peakcalling_Output" )
 
 parser_filterChromosomes = subparsers.add_parser("filterChromosomes", help= "Filter certain chromosomes out of your .narrowPeak file")
 #required flags
@@ -554,7 +602,7 @@ parser_filterPeaks.add_argument("r", nargs=1, type=str, help = "This is the refS
 #Optional flags
 parser_filterPeaks.add_argument("-o", "-output",      nargs=1, type=str, help   = "The location of the output folder")
 parser_filterPeaks.add_argument("-p", "-minPeakSize", nargs=1, type=int, help   = "If you want to stretch the peaks smaller than a certain size to other size. default = 2000" )
-parser_filterPeaks.add_argument("-tr", "-treshold",    nargs=1, type=int, help  = "The minimal distance each enhancer should be of any promoter region. default = 5000")
+parser_filterPeaks.add_argument("-tr", "-threshold",    nargs=1, type=int, help  = "The minimal distance each enhancer should be of any promoter region. default = 5000")
 parser_filterPeaks.add_argument("-mt", "-removeMT", nargs=1, type=str, help    = "Remove Mitochondrial DNA from the peaks. (True/False) default= True")
 #input example: python argpars.py SFTregD2_peaks.narrowPeak ncbiREFSEQ.txt -o results/filteredPeaks -p 2500 -tr 5100'
 
@@ -565,33 +613,38 @@ parser_sortGFF.add_argument("o", nargs=1, type=str, help = "The name of the outp
 
 parser_ROSE = subparsers.add_parser("ROSE", help = "Find super enhancers by calling the ROSE_main() program")
 #required flags
-parser_ROSE.add_argument("i", nargs=1, type=str, help = "The .txt file containing the relative paths from this program and containing the names of each sorted .gff file you want to find super enhancers in. on the next line after eachr .gff file should be the name of the .bam file that is assiociated with it")
+parser_ROSE.add_argument("i", nargs=1, type=str, help = "A list of files that are used for ROSE. Each line should contain the relative path to each gff file and the bam file it is associated with, comma seperated.")
 parser_ROSE.add_argument("-g", "-genomeBuild", type=str, help = "Which genome build is used to map to. (choose: MM8,MM9,MM10,HG18,HG19) default= HG19")
 
 parser_peakConsensus = subparsers.add_parser("peakConsensus", help = "create one consensus .bed file out of multiple superEnhancer.table.txt")
 #required flags
-parser_peakConsensus.add_argument("i", nargs=1, type=str, help = "The location of the files list. This list should contain the relative paths leading to the .bed Super enhancer files from the location of this program")
+parser_peakConsensus.add_argument("i", nargs=1, type=str, help = "The location of the files list. This list should contain the relative paths leading to the _SuperEnhancers.table.txt Super enhancer files from the location of this program")
 parser_peakConsensus.add_argument("n", nargs=1, type=str, help = "This wil be the name of the end .bed file (to this name '_consensus' will be added)")
 parser_peakConsensus.add_argument("t", nargs=1, type=int, help = "In how many files should a certain peak overlap to be added to the consensus .bed file")
 
-parser_compareGroups = subparsers.add_parser("compareGroups", help = "Compare two sample groups and find if certain super-enhancers appear to have a higher activity in either one of the groups")
+parser_compareSamples = subparsers.add_parser("compareSamples", help = "Find per super-enhancer how many reads are in any sample")
 #required flags
-parser_compareGroups.add_argument("i", nargs=1, type=str, help = "A file containing all the bam files, bed files and sample groups. all bam files, bed files and sample groups should be comma seperated and each couple should be on a newline. The sample groups are compared alphabeticly, so a positive foldchange means that there is more activity in group B. two example lines could be: PBT1.bam,PBT_SFT_consensus.bed,A_PBT & SFT1.bam,PBT_SFT_consensus.bed,B_SFT")
-parser_compareGroups.add_argument("c", nargs=1, type=str, help = "The relative location of the consensus super enhancer file")
-#optional flags
-parser_compareGroups.add_argument("-s", "-significane", nargs=1, type=str, help= "Filter out peaks that have a higher P-value than the given value")
-parser_compareGroups.add_argument("-a", "-adjustedP",   nargs=1, type=str, help= "Filter out the result peaks that have a higher adjusted P-value than the given value. If this flag is used, the -s flag will be ignored")
-parser_compareGroups.add_argument("-f", "-foldChange",  nargs=1, type=str, help= "Filter out the peaks that have a foldchange lower than the given value")
+parser_compareSamples.add_argument("i", nargs=1, type=str, help = "A file containing all the bam files, bed files and sample groups. all bam files, bed files and sample groups should be comma seperated and each couple should be on a newline. The sample groups are compared alphabeticly, so a positive foldchange means that there is more activity in group B. two example lines could be: PBT1.bam,PBT_SFT_consensus.bed,A_PBT & SFT1.bam,PBT_SFT_consensus.bed,B_SFT")
+parser_compareSamples.add_argument("c", nargs=1, type=str, help = "The relative location of the consensus super enhancer file")
 
-parser_findGenes = subparsers.add_parser("findGenes", help = "Read the end consensus file and compare it to a refrence genome to find which genes are regulated by the super enhancers that are found")
+parser_DESeq2 = subparsers.add_parser("DESeq2", help = "Compare two sample groups and find if certain super-enhancers appear to have a higher activity in either one of the groups. In the same folder as the pipeline three files should be there. superEnhancer_counts.txt, superEnhancer_names.txt & results.txt. These files are generated in the comparareSamples step")
+
+parser_filterResults = subparsers.add_parser("filterResults", help = "filter our DESeq2 results that aren't significant or below a certain log2foldchange")
+#optional flags
+parser_filterResults.add_argument("-s", "-significance", nargs=1, type=str, help= "Filter out peaks that have a higher P-value than the given value")
+parser_filterResults.add_argument("-a", "-adjustedP",   nargs=1, type=str, help= "Filter out the result peaks that have a higher adjusted P-value than the given value. If this flag is used, the -s flag will be ignored")
+parser_filterResults.add_argument("-f", "-foldChange",  nargs=1, type=str, help= "Filter out the peaks that have a foldchange lower than the given value")
+
+parser_findGenes = subparsers.add_parser("findGenes", help = "Read the end results file and compare it to a refrence genome to find which genes are regulated by the super enhancers that are found")
 #required flags
-parser_findGenes.add_argument("i", nargs=1, type=str, help = "The relative location of the consensus peak file")
+parser_findGenes.add_argument("i", nargs=1, type=str, help = "The relative location of the results peak file")
 parser_findGenes.add_argument("r", nargs=1, type=str, help = "The location of the refrence genome file")
 #optional flags
 parser_findGenes.add_argument("-t", "-threshold", nargs=1, type=int, help="The maximal distance between the Gene and the super enhancer. default = 50.000")
+parser_findGenes.add_argument("-n", "-geneName", nargs=1, type=str, help="add a translation file with TSV format with columns:Gene stable ID, RefSeq mRNA ID, Gene name")
 args = parser.parse_args()
 
-if sys.argv[1] == "callpeaks": 
+if sys.argv[1] == "callPeaks": 
     bamFileDir = {}
     fileList = args.i
     with open(fileList) as f:
@@ -665,7 +718,7 @@ if sys.argv[1] == "filterPeaks":
         writeGFF(endPeaks, outPut, fileName)
         
     
-    print("\n--- %s seconds ---" % (time.time() - start_time))
+    print("\nFiltering peaks took {:.0f} seconds".format(time.time() - start_time))
 
 if sys.argv[1] == "sortGFF":
     gffFiles = []
@@ -676,20 +729,19 @@ if sys.argv[1] == "sortGFF":
     sortGFF(gffFiles, args.o[0])
 
 if sys.argv[1] == "ROSE":
-    allFiles = []
+    rankByDict = {}
     with open(args.i[0], "r") as f:
         for lines in f:
-            allFiles.append(lines.rstrip().replace("\\", r"/"))
-    rankByDict = {}
-    for gffFiles, bamFiles in zip(allFiles[::2], allFiles[1::2]):
-        rankByDict[bamFiles] = gffFiles
+            if lines.strip() != "":
+                gffFile, bamFile = lines.rstrip().replace("\\", r"/").split(",")
+                rankByDict[bamFile] = gffFile    
     
     if args.g:
         genomebuild = args.g[0].upper()
     else:
         genomebuild = "HG19"
     
-    ROSEcall(rankByDict, genome= genomebuild)
+    #ROSEcall(rankByDict, genome= genomebuild)
 
 if sys.argv[1] == "peakConsensus":
     fileListDir     = args.i[0]
@@ -704,7 +756,7 @@ if sys.argv[1] == "peakConsensus":
 
     fileWriter(endPeaks, chroms, outputName, treshold)
 
-if sys.argv[1] == "compareGroups":
+if sys.argv[1] == "compareSamples":
     bambedFiles = {}
     with open(args.i[0]) as f:   
         for lines in f:
@@ -714,6 +766,16 @@ if sys.argv[1] == "compareGroups":
     createdBedFiles = compareBamBed(bambedFiles)
     consensusFile   = args.c[0]
     
+
+    start_time = time.time()
+    superEnhancerReadOverlap(consensusFile, createdBedFiles)
+    print("\nFinding reads per super-enhancer took {:.0f} seconds".format(time.time() - start_time))
+
+if sys.argv[1] == "DESeq2":
+    DESeq2()
+
+if sys.argv[1] == "filterResults":
+
     if args.a:
         adjustedPValue = ["a", args.a[0]]
     elif args.s:
@@ -725,16 +787,26 @@ if sys.argv[1] == "compareGroups":
         foldChangeValue = [True, args.f[0]]
     else:
         foldChangeValue = [False]
-
-    start_time = time.time()
-    superEnhancerReadOverlap(consensusFile, createdBedFiles, adjustedPValue, foldChangeValue)
-    print("\n--- %s seconds ---" % (time.time() - start_time))
+        
+    filterResults(adjustedPValue, foldChangeValue)
 
 if sys.argv[1] == "findGenes":
     consensusFile     = args.i[0]
+    endFileName       = consensusFile[:-4] + "_withGenes.txt"
     consensusDict     = readConsensus(consensusFile)
+
 
     referenceGenome   = args.r[0]
     referenceGenomeDict = createGeneDict(referenceGenome)
+
+    if args.t:
+        maxDistance = int(args.t[0])
+    else:
+        maxDistance = 50000
     
-    geneFinder(consensusDict, referenceGenomeDict)
+    if args.n:
+        translateFile = readGeneTranslate(args.n[0])
+    else:
+        translateFile = None
+
+    geneFinder(consensusDict, referenceGenomeDict, translateFile, endFileName, geneDistance= maxDistance)
