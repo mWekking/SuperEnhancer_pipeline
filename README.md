@@ -156,26 +156,6 @@ There are no flags but in the same folder as the pipeline and the DESeq2 R scrip
 
 **Example input**: ```python superEnhancerPipeline.py DESeq2```
 
-## filterResults ##
-
-filter the DESeq2 results that aren't significant or below a certain fold change. The DESeq2 files should be in the same folder as the pipeline.
-
-**Optional flags**
-
--s/-signficane
-
-Filter out peaks that have a higher P-value than the given value
-
--a/adjustedP
-
-Filter out the results peak higher adjusted P-value than the given value. If this flag is used the -s flag will be ignored
-
--f/-foldChange
-
-filter out peaks that have a fold change higher than the given value
-
-**Example input**: ```python superEnhancerPipeline.py filterResults -s 0.05 -f 0.4```
-
 ## findGenes
 
 find genes that are associated with each super-enhancer
