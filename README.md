@@ -219,7 +219,7 @@ The relative path to the directory with narrowPeak files
 
 The chromosomes you want to keep comma seperated
 
-**Example input** ```python superEnhancerPipeline.py filterChromosomes Macs_peakcalling```
+**Example input**: ```python superEnhancerPipeline.py filterChromosomes Macs_peakcalling```
 
 ## sortGFF
 
@@ -235,4 +235,22 @@ A file list with on each row the relative path to the GFF files
 
 The name of output directory
 
-**Example input** ```python superEnhancerPipeline.py sortGFF sort_filelist.txt sorted_GFFs```
+**Example input**: ```python superEnhancerPipeline.py sortGFF sort_filelist.txt sorted_GFFs```
+
+## filterResults
+
+filter our DESeq2 results that aren't significant or below a certain log2foldchange
+
+-s/-significance
+
+Filter out peaks that have a higher P-value than the given value
+
+-a/-adjustedP
+
+ Filter out the result peaks that have a higher adjusted P-value than the given value. If this flag is used, the -s flag will be ignored
+ 
+ -f/-foldChange
+ 
+ Filter out the peaks that have a foldchange lower than the given value
+ 
+ **Example input**: python superEnhancerPipeline.py filterResults -a 0.1 -f 0.4
